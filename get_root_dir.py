@@ -11,7 +11,7 @@ import subprocess
 # Return the MATLAB working folder depending on host system (My MacBook or Pancreas/sub-hosts)
 def get_mat_root():
     hname = socket.gethostname()
-    if hname == "Trevors-MBP-2":
+    if "Trevors" in hname:
         mat_root = "/Users/hiltontj/Documents/MATLAB/pancreas/"
 
         # Check if the mounted pancreas folder is empty, and if so, remount it

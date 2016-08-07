@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../seizml/.idea/seizureML.iml" filepath="$PROJECT_DIR$/../seizml/.idea/seizureML.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/seizml.iml" filepath="$PROJECT_DIR$/.idea/seizml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/seizureML.iml" filepath="$PROJECT_DIR$/.idea/seizureML.iml" />
     </modules>
   </component>
 </project>

@@ -32,14 +32,14 @@ def getseizure(fname):
 
 # Compile the training and test set from the patient seizure and interictal data. Returns training and test data/labels;
 #   The training data/labels are shuffled.
-def gmi_dataset_extract(ldir, gmiType, threshold, stateSwitch, randomState, interTestSize):
+def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTestSize):  # random goes 2nd-to-last
     patients = ['DV', 'GB', 'SW', 'PE', 'RS', 'JY']
     test_rng = {'DV': [20, 27], 'GB': [4, 7], 'SW': [2, 3], 'PE': [2, 3], 'RS': [4, 5], 'JY': [8, 13]}
     train_rng = {'DV': [0, 19], 'GB': [0, 3], 'SW': [0, 1], 'PE': [0, 1], 'RS': [0, 3], 'JY': [0, 7]}
 
     first = True
     for pt in patients:
-        fname = pt + "19_EEG_10sec_" + gmiType + "_th=%0.0d.mat" % threshold
+        fname = pt + "19_EEG_" + winSize + "sec_" + gmiType + "_th=%0.0d.mat" % threshold
         fv, fl = getseizure(ldir + fname)
         if first:
             test_data = fv[test_rng[pt][0]:test_rng[pt][1] + 1]
@@ -69,7 +69,7 @@ def gmi_dataset_extract(ldir, gmiType, threshold, stateSwitch, randomState, inte
     fname = "6P19_EEG_10sec_" + gmiType + "_th=%0.0d.mat" % threshold
     fv = getinterictal(ldir + fname)
     fl = np.zeros([np.shape(fv)[0], 1])
-    fv_train, fv_test, fl_train, fl_test = train_test_split(fv, fl, test_size=interTestSize, random_state=randomState)
+    fv_train, fv_test, fl_train, fl_test = train_test_split(fv, fl, test_size=interTestSize)  #, random_state=randomState)
 
     # compile the final train and test set from both interictal and seizure states
     X_train = np.vstack((train_data, fv_train))
@@ -77,7 +77,10 @@ def gmi_dataset_extract(ldir, gmiType, threshold, stateSwitch, randomState, inte
     y_train = np.vstack((train_lbls, fl_train))
     y_test = np.vstack((test_lbls, fl_test))
     # print(np.shape(y_train) + np.shape(X_train))
-    X_train, y_train = shuffle(X_train, y_train.ravel(), random_state=randomState)
+    X_train, y_train = shuffle(X_train, y_train.ravel())  #, random_state=randomState)
+
+    X_train = np.float_(X_train)
+    X_test = np.float_(X_test)
 
     return X_train, y_train, X_test, y_test
 
