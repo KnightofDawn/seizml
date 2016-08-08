@@ -19,14 +19,14 @@ def getinterictal(fname):
 # collect thresholded MI epochs from a seizure
 def getseizure(fname):
     matfile = sio.loadmat(fname)  # load mat file
-    fv = matfile['data'][0, 0][2]  # initialize first row
-    fl = matfile['data'][0, 0][0]
+    fv = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')]  # initialize first row
+    fl = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('label')]
     for i in range(1, len(matfile['data'][0])):  # collect remaining rows
         # print(np.shape(fv))
         # print(np.shape(matfile['data'][0, i][0]))
 
-        fv = np.vstack((fv, matfile['data'][0, i][2]))  # use vstack to vertically concatenate
-        fl = np.vstack((fl, matfile['data'][0, i][0]))
+        fv = np.vstack((fv, matfile['data'][0, i][list(matfile['data'].dtype.names).index('fv')]))  # use vstack to vertically concatenate
+        fl = np.vstack((fl, matfile['data'][0, i][list(matfile['data'].dtype.names).index('label')]))
     return fv, fl
 
 
@@ -34,8 +34,12 @@ def getseizure(fname):
 #   The training data/labels are shuffled.
 def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTestSize):  # random goes 2nd-to-last
     patients = ['DV', 'GB', 'SW', 'PE', 'RS', 'JY']
-    test_rng = {'DV': [20, 27], 'GB': [4, 7], 'SW': [2, 3], 'PE': [2, 3], 'RS': [4, 5], 'JY': [8, 13]}
-    train_rng = {'DV': [0, 19], 'GB': [0, 3], 'SW': [0, 1], 'PE': [0, 1], 'RS': [0, 3], 'JY': [0, 7]}
+    if winSize == '10':
+        test_rng = {'DV': [20, 27], 'GB': [4, 7], 'SW': [2, 3], 'PE': [2, 3], 'RS': [4, 5], 'JY': [8, 13]}
+        train_rng = {'DV': [0, 19], 'GB': [0, 3], 'SW': [0, 1], 'PE': [0, 1], 'RS': [0, 3], 'JY': [0, 7]}
+    elif winSize == '2':
+        test_rng = {'DV': [100, 139], 'GB': [20, 39], 'SW': [10, 19], 'PE': [10, 19], 'RS': [20, 29], 'JY': [40, 69]}
+        train_rng = {'DV': [0, 99], 'GB': [0, 19], 'SW': [0, 9], 'PE': [0, 9], 'RS': [0, 19], 'JY': [0, 39]}
 
     first = True
     for pt in patients:
