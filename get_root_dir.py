@@ -21,7 +21,7 @@ def get_mat_root():
             subprocess.call("/Users/hiltontj/Documents/scripts/mountpancreas.sh")
             print("Pancreas re-mounted.")
 
-    elif hname in ['pancreas', 'sheldon', 'leonard', 'bernadette', 'howard', 'raj', 'penny']:
+    elif hname in ['pancreas', 'sheldon', 'leonard', 'bernadette', 'howard', 'raj', 'penny', 'pepi']:
         mat_root = "/home/hiltontj/Documents/MATLAB/Thesis/work/"
 
     return mat_root

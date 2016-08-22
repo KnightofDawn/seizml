@@ -6,6 +6,7 @@ from sklearn.utils import shuffle
 
 # collect interictal, thresholded MI epochs from the interictal data structures
 def getinterictal(fname):
+
     matfile = sio.loadmat(fname) # load mat file
     fv = matfile['data'][0, 0][0] # initialize first row
     for i in range(1, len(matfile['data'][0])): # collect remaining rows
@@ -18,6 +19,7 @@ def getinterictal(fname):
 
 # collect thresholded MI epochs from a seizure
 def getseizure(fname):
+
     matfile = sio.loadmat(fname)  # load mat file
     fv = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')]  # initialize first row
     fl = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('label')]
@@ -33,6 +35,7 @@ def getseizure(fname):
 # Compile the training and test set from the patient seizure and interictal data. Returns training and test data/labels;
 #   The training data/labels are shuffled.
 def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTestSize):  # random goes 2nd-to-last
+
     patients = ['DV', 'GB', 'SW', 'PE', 'RS', 'JY']
     if winSize == '10':
         test_rng = {'DV': [20, 27], 'GB': [4, 7], 'SW': [2, 3], 'PE': [2, 3], 'RS': [4, 5], 'JY': [8, 13]}
@@ -69,19 +72,26 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
         test_lbls = np.ones([np.shape(test_data)[0], 1])
         train_lbls = np.ones([np.shape(train_data)[0], 1])
 
-    # get the interictal data
-    fname = "6P19_EEG_10sec_" + gmiType + "_th=%0.0d.mat" % threshold
-    fv = getinterictal(ldir + fname)
-    fl = np.zeros([np.shape(fv)[0], 1])
-    fv_train, fv_test, fl_train, fl_test = train_test_split(fv, fl, test_size=interTestSize)  #, random_state=randomState)
+    # get the interictal data (if s1 vs. i0 OR s2 vs. i0)
+    if stateSwitch != "s1s2":
+        fname = "6P19_EEG_10sec_" + gmiType + "_th=%0.0d.mat" % threshold
+        fv = getinterictal(ldir + fname)
+        fl = np.zeros([np.shape(fv)[0], 1])
+        fv_train, fv_test, fl_train, fl_test = train_test_split(fv, fl, test_size=interTestSize)  #, random_state=randomState)
 
-    # compile the final train and test set from both interictal and seizure states
-    X_train = np.vstack((train_data, fv_train))
-    X_test = np.vstack((test_data, fv_test))
-    y_train = np.vstack((train_lbls, fl_train))
-    y_test = np.vstack((test_lbls, fl_test))
-    # print(np.shape(y_train) + np.shape(X_train))
-    X_train, y_train = shuffle(X_train, y_train.ravel())  #, random_state=randomState)
+        # compile the final train and test set from both interictal and seizure states
+        X_train = np.vstack((train_data, fv_train))
+        X_test = np.vstack((test_data, fv_test))
+        y_train = np.vstack((train_lbls, fl_train))
+        y_test = np.vstack((test_lbls, fl_test))
+        # print(np.shape(y_train) + np.shape(X_train))
+        X_train, y_train = shuffle(X_train, y_train.ravel())  #, random_state=randomState)
+    else:
+        X_train = train_data
+        X_test = test_data
+        y_train = train_lbls
+        y_test = test_lbls
+        X_train, y_train = shuffle(X_train, y_train.ravel())  # , random_state=randomState)
 
     X_train = np.float_(X_train)
     X_test = np.float_(X_test)
@@ -89,3 +99,22 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
     return X_train, y_train, X_test, y_test
 
 
+def full_seizure_extract(fname):
+
+    matfile = sio.loadmat(fname)
+    fv = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')][0, 0]  # initialize first row
+    wind = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('wind')]
+    for i in range(1, np.shape(matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')])[1]):  # collect remaining rows
+        # print(np.shape(fv))
+        # print(np.shape(matfile['data'][0, i][0]))
+        fv = np.vstack((fv, matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')][0, i]))  # use vstack to vertically concatenate
+
+    return fv, wind
+
+
+def full_seizure_detect_save(fname, fv, classes, wind):
+    print(fname)
+    subdict = {'fv': fv, 'wind': wind, 'classes': classes}
+    sio.savemat(fname, {'data': subdict})
+
+    return None

@@ -1,25 +1,35 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import auc, roc_curve
-from sklearn import svm
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 from scipy import interp
 from matransfer import gmi_dataset_extract
+from record_data import rec_test_result
+from get_root_dir import get_mat_root
 
-ldir = "/Users/hiltontj/Documents/MATLAB/pancreas/mlv2/threshbin/"
+
+ldir = get_mat_root() + "mlv2/threshbin/"
 gmitype = 'gmi5'
-state_switch = 's2'
-randomState = 42
+winsize = '2'
+state_switch = 's1s2'
+np.random.seed(42)  # fix randomness
+kern = 'linear'
+clf = SVC(kernel=kern, probability=True)
 
 scores = []
 errs = []
-for th in range(1, 101):
-    print("Threshold %0.0d/100" % th)
+thvals = range(1, 101)
+for th in thvals:
+    print(clf.__class__.__name__ + " Threshold %0.0d/100" % th)
     # get seizure epochs from each patient with predetermined training/testing division
-    X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, th, state_switch, randomState, interTestSize=0.66)
+    X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, interTestSize=0.66)
 
     cv = StratifiedKFold(y_train, n_folds=5)
-    clf = svm.SVC(kernel='linear', probability=True, random_state=randomState)
 
     mean_tpr = 0.0
     mean_fpr = np.linspace(0, 1, 100)
@@ -55,17 +65,31 @@ for th in range(1, 101):
     scores.append(score)
     # errs.append(score.std())
 
-savedir = "/Users/hiltontj/Documents/MATLAB/pancreas/mlv2/"
-fname = "CV_" + gmitype + "_" + state_switch + ".txt"
-np.savetxt(savedir + fname, np.c_[scores], delimiter=',')
+savedir = "mlv2/rocbin/"
+savetype = "CV"
+comment = dict()
+comment['ClassifierType'] = clf.__class__.__name__
+if "RandomForest" in comment['ClassifierType']:
+    comment['number_estimators'] = numEsts
+elif "AdaBoost" in comment['ClassifierType']:
+    comment['BaseClassifier'] = base_clf.__class__.__name__
+    comment['number_estimators'] = numEsts
+    comment['algorithm'] = algo
+elif "LogisticRegression" in comment['ClassifierType']:
+    comment['penalty'] = pen
+elif "SVC" in comment['ClassifierType']:
+    comment['kernel'] = kern
 
-maxscores = np.argmax(scores)
+comment['StateSwitch'] = state_switch
+rec_test_result(savetype, savedir, {'comment': comment, 'scores': scores, 'th': thvals})
 
-plt.plot(range(1,101), scores, 'o')
-plt.plot(maxscores, scores[maxscores], 'ro')
-plt.axis([0, 100, 0.9, 1.])
-plt.xlabel("Threshold")
-plt.ylabel("CV AUC")
-plt.title("CV using " + state_switch.capitalize())
-plt.show()
+# maxscores = np.argmax(scores)
+#
+# plt.plot(range(1,101), scores, 'o')
+# plt.plot(maxscores, scores[maxscores], 'ro')
+# plt.axis([0, 100, 0.9, 1.])
+# plt.xlabel("Threshold")
+# plt.ylabel("CV AUC")
+# plt.title("CV using " + state_switch.capitalize())
+# plt.show()
 
