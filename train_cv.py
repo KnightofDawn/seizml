@@ -18,8 +18,20 @@ gmitype = 'gmi5'
 winsize = '2'
 state_switch = 's1s2'
 np.random.seed(42)  # fix randomness
-kern = 'linear'
-clf = SVC(kernel=kern, probability=True)
+# SVC
+# kern = 'linear'
+# clf = SVC(kernel=kern, probability=True)
+# Logistic Regression
+# pen = 'l2'
+# clf = LogisticRegression(penalty=pen)
+# Random Forest
+numEsts = 100
+clf = RandomForestClassifier(n_estimators=numEsts)
+# AdaBoost
+# algo = "SAMME"
+# numEsts = 100
+# base_clf = DecisionTreeClassifier(max_depth=1)
+# clf = AdaBoostClassifier(base_estimator=base_clf, n_estimators=numEsts, algorithm=algo)
 
 scores = []
 errs = []
