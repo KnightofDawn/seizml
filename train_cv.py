@@ -16,17 +16,19 @@ from get_root_dir import get_mat_root
 ldir = get_mat_root() + "mlv2/threshbin/"
 gmitype = 'gmi5'
 winsize = '2'
-state_switch = 's1s2'
+state_switch = 's1'
+inter_test_size = 0.66
+max_windows = 5
 np.random.seed(42)  # fix randomness
 # SVC
-# kern = 'linear'
-# clf = SVC(kernel=kern, probability=True)
+kern = 'linear'
+clf = SVC(kernel=kern, probability=True)
 # Logistic Regression
 # pen = 'l2'
 # clf = LogisticRegression(penalty=pen)
 # Random Forest
-numEsts = 100
-clf = RandomForestClassifier(n_estimators=numEsts)
+# numEsts = 100
+# clf = RandomForestClassifier(n_estimators=numEsts)
 # AdaBoost
 # algo = "SAMME"
 # numEsts = 100
@@ -39,7 +41,7 @@ thvals = range(1, 101)
 for th in thvals:
     print(clf.__class__.__name__ + " Threshold %0.0d/100" % th)
     # get seizure epochs from each patient with predetermined training/testing division
-    X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, interTestSize=0.66)
+    X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, inter_test_size, max_windows)
 
     cv = StratifiedKFold(y_train, n_folds=5)
 

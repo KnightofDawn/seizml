@@ -18,15 +18,23 @@ def getinterictal(fname):
 
 
 # collect thresholded MI epochs from a seizure
-def getseizure(fname):
+def getseizure(fname, max_windows):
 
     matfile = sio.loadmat(fname)  # load mat file
     fv = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')]  # initialize first row
     fl = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('label')]
+    prev_seiz = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('Seizure')]
     for i in range(1, len(matfile['data'][0])):  # collect remaining rows
         # print(np.shape(fv))
         # print(np.shape(matfile['data'][0, i][0]))
-
+        curr_seiz = matfile['data'][0, i][list(matfile['data'].dtype.names).index('Seizure')]
+        if curr_seiz == prev_seiz:
+            cnt += 1
+        else:
+            prev_seiz = curr_seiz
+            cnt = 1
+        if cnt > max_windows:
+            continue
         fv = np.vstack((fv, matfile['data'][0, i][list(matfile['data'].dtype.names).index('fv')]))  # use vstack to vertically concatenate
         fl = np.vstack((fl, matfile['data'][0, i][list(matfile['data'].dtype.names).index('label')]))
     return fv, fl
@@ -34,7 +42,7 @@ def getseizure(fname):
 
 # Compile the training and test set from the patient seizure and interictal data. Returns training and test data/labels;
 #   The training data/labels are shuffled.
-def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTestSize):  # random goes 2nd-to-last
+def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTestSize, max_windows):  # random goes 2nd-to-last
 
     patients = ['DV', 'GB', 'SW', 'PE', 'RS', 'JY']
     if winSize == '10':
@@ -47,7 +55,7 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
     first = True
     for pt in patients:
         fname = pt + "19_EEG_" + winSize + "sec_" + gmiType + "_th=%0.0d.mat" % threshold
-        fv, fl = getseizure(ldir + fname)
+        fv, fl = getseizure(ldir + fname, max_windows)
         if first:
             test_data = fv[test_rng[pt][0]:test_rng[pt][1] + 1]
             train_data = fv[train_rng[pt][0]:train_rng[pt][1] + 1]
@@ -74,7 +82,7 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
 
     # get the interictal data (if s1 vs. i0 OR s2 vs. i0)
     if stateSwitch != "s1s2":
-        fname = "6P19_EEG_10sec_" + gmiType + "_th=%0.0d.mat" % threshold
+        fname = "6P19_EEG_" + winSize + "sec_" + gmiType + "_th=%0.0d.mat" % threshold
         fv = getinterictal(ldir + fname)
         fl = np.zeros([np.shape(fv)[0], 1])
         fv_train, fv_test, fl_train, fl_test = train_test_split(fv, fl, test_size=interTestSize)  #, random_state=randomState)

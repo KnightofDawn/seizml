@@ -14,10 +14,12 @@ from record_data import rec_test_result
 ldir = get_mat_root() + "mlv2/threshbin/"
 gmitype = 'gmi5'  # use quantile-based MI threshold
 winsize = '2'
-state_switch = 's1s2'  # select the seizure state
+state_switch = 's2'  # select the seizure state
+inter_test_size = 0.66
+max_windows = 5
 # randomState = 42  # fix random state
 np.random.seed(42)  # fix randomness
-th = 50  # select the MI threshold
+th = 95  # select the MI threshold
 # SVC
 # kern = 'linear'
 # clf = SVC(kernel=kern, probability=True)
@@ -33,7 +35,7 @@ clf = RandomForestClassifier(n_estimators=numEsts)
 # base_clf = DecisionTreeClassifier(max_depth=1)
 # clf = AdaBoostClassifier(base_estimator=base_clf, n_estimators=numEsts, algorithm=algo)
 
-X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, interTestSize=0.66)
+X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, inter_test_size, max_windows)
 clf.fit(X_train, y_train)
 probas_ = clf.predict_proba(X_test)
 fpr, tpr, thresholds = roc_curve(y_test, probas_[:, 1])
