@@ -15,13 +15,13 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 
-ldir = get_mat_root() + "mlv2/threshbin/"
-gmitype = 'gmi5'
-winsize = '2'
-state_switch = 's1'
-inter_test_size = 0.66
-max_windows = 9
-np.random.seed(42)  # fix randomness
+# ldir = get_mat_root() + "mlv2/threshbin/"
+# gmitype = 'gmi5'
+# winsize = '2'
+# state_switch = 's1'
+# inter_test_size = 0.66
+# max_windows = 9
+# np.random.seed(42)  # fix randomness
 # SVC
 # kern = 'linear'
 # clf = SVC(kernel=kern, probability=True)
@@ -29,30 +29,30 @@ np.random.seed(42)  # fix randomness
 # pen = 'l2'
 # clf = LogisticRegression(penalty=pen)
 # Random Forest
-numEsts = 100
-clf = RandomForestClassifier(n_estimators=numEsts)
+# numEsts = 100
+# clf = RandomForestClassifier(n_estimators=numEsts)
 # AdaBoost
 # algo = "SAMME"
 # numEsts = 100
 # base_clf = DecisionTreeClassifier(max_depth=1)
 # clf = AdaBoostClassifier(base_estimator=base_clf, n_estimators=numEsts, algorithm=algo)
+N_e = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+num_cores = multiprocessing.cpu_count()
 
-scores = []
-errs = []
-thvals = range(1, 101)
+# thvals = range(1, 101)
 # for th in thvals:  # for CVing over a range of MI Thresholds
-th = 95  # for a fixed MI threshold
 
 def my_process(numEsts):
+    th = 95 # for a fixed MI threshold
     ldir = get_mat_root() + "mlv2/threshbin/"
     gmitype = 'gmi5'
     winsize = '2'
-    state_switch = 's1'
+    state_switch = 's2'
     inter_test_size = 0.66
-    max_windows = 9
+    max_windows = 8
     np.random.seed(42)  # fix randomness
     clf = RandomForestClassifier(n_estimators=numEsts, n_jobs=-1)
-    print(clf.__class__.__name__ + " Threshold %0.0d/100" % th)
+    # print(clf.__class__.__name__ + " Threshold %0.0d/100" % th)
     # get seizure epochs from each patient with predetermined training/testing division
     X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, inter_test_size, max_windows)
 
@@ -88,29 +88,29 @@ def my_process(numEsts):
 
     # score = cross_val_score(clf, X_train, y_train.ravel(), cv=5)
     # print("Accuracy: %0.4f (+/- %0.4f)" % (100*score.mean(), 100*score.std() * 2))
-    print(score)
-    scores.append(score)
+    # print(score)
+    # scores.append(score)
     # errs.append(score.std())
 
-savedir = "mlv2/rocbin/"
-savetype = "CV"
-comment = dict()
-comment['ClassifierType'] = clf.__class__.__name__
-comment['MaxWindows'] = float(max_windows % 5)
-if "RandomForest" in comment['ClassifierType']:
-    comment['number_estimators'] = numEsts
-elif "AdaBoost" in comment['ClassifierType']:
-    comment['BaseClassifier'] = base_clf.__class__.__name__
-    comment['number_estimators'] = numEsts
-    comment['algorithm'] = algo
-elif "LogisticRegression" in comment['ClassifierType']:
-    comment['penalty'] = pen
-elif "SVC" in comment['ClassifierType']:
-    comment['kernel'] = kern
+    savedir = "mlv2/rocbin/num_est/th{}/".format(th)
+    savetype = "CV"
+    comment = dict()
+    comment['ClassifierType'] = clf.__class__.__name__
+    comment['MaxWindows'] = float(max_windows % 5)
+    if "RandomForest" in comment['ClassifierType']:
+        comment['number_estimators'] = numEsts
+    elif "AdaBoost" in comment['ClassifierType']:
+        comment['BaseClassifier'] = base_clf.__class__.__name__
+        comment['number_estimators'] = numEsts
+        comment['algorithm'] = algo
+    elif "LogisticRegression" in comment['ClassifierType']:
+        comment['penalty'] = pen
+    elif "SVC" in comment['ClassifierType']:
+        comment['kernel'] = kern
 
-comment['StateSwitch'] = state_switch
-appendString = ''.join([state_switch, str(numEsts)])
-rec_test_result(savetype, savedir, {'comment': comment, 'scores': scores, 'th': thvals}, appendString)
+    comment['StateSwitch'] = state_switch
+    appendString = ''.join([state_switch, str(numEsts)])
+    rec_test_result(savetype, savedir, {'comment': comment, 'score': score, 'th': th}, appendString)
 
 # maxscores = np.argmax(scores)
 #

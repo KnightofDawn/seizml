@@ -1,13 +1,15 @@
 from record_data import rec_test_result
-from matransfer import full_seizure_extract
+from matransfer import full_seizure_extract, gmi_dataset_extract
 from get_root_dir import get_mat_root
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 
 
 def main():
     # test_rectestresult()
-    test_fullseizextract()
+    # test_fullseizextract()
+    prob_tester()
 
 
 def test_rectestresult():
@@ -31,6 +33,35 @@ def test_fullseizextract():
     mf = full_seizure_extract(ldir, patient, seizure, 90)
 
     print('dummy line')
+
+
+def prob_tester():
+    # Get Files
+    ldir = get_mat_root() + "mlv2/threshbin/"
+    gmitype = 'gmi5'  # use quantile-based MI threshold
+    winsize = '2'
+    state_switch = 's1'  # select the seizure state
+    # randomState = 42  # fix random state
+    np.random.seed(42)  # fix randomness
+    th = 90  # select the MI threshold
+    # SVC
+    # kern = 'linear'
+    # clf = SVC(kernel=kern, probability=True)
+    # Logistic Regression
+    pen = 'l2'
+    clf = LogisticRegression(penalty=pen)
+    # Random Forest
+    # numEsts = 100
+    # clf = RandomForestClassifier(n_estimators=numEsts)
+    # AdaBoost
+    # algo = "SAMME"
+    # numEsts = 100
+    # base_clf = DecisionTreeClassifier(max_depth=1)
+    # clf = AdaBoostClassifier(base_estimator=base_clf, n_estimators=numEsts, algorithm=algo)
+
+    # Train model
+    X_train, y_train, X_test, y_test = gmi_dataset_extract(ldir, gmitype, winsize, th, state_switch, interTestSize=0.66)
+    clf.fit(X_train, y_train)
 
 
 main()

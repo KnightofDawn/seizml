@@ -24,20 +24,26 @@ def getseizure(fname, max_windows):
     fv = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('fv')]  # initialize first row
     fl = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('label')]
     prev_seiz = matfile['data'][0, 0][list(matfile['data'].dtype.names).index('Seizure')]
+    cnt = 1
+    keep = np.array([1])
+    # print(prev_seiz)
     for i in range(1, len(matfile['data'][0])):  # collect remaining rows
         # print(np.shape(fv))
         # print(np.shape(matfile['data'][0, i][0]))
         curr_seiz = matfile['data'][0, i][list(matfile['data'].dtype.names).index('Seizure')]
+        # print(curr_seiz)
         if curr_seiz == prev_seiz:
             cnt += 1
         else:
             prev_seiz = curr_seiz
             cnt = 1
         if cnt > max_windows:
-            continue
+            keep = np.vstack((keep, 0))
+        else:
+            keep = np.vstack((keep, 1))
         fv = np.vstack((fv, matfile['data'][0, i][list(matfile['data'].dtype.names).index('fv')]))  # use vstack to vertically concatenate
         fl = np.vstack((fl, matfile['data'][0, i][list(matfile['data'].dtype.names).index('label')]))
-    return fv, fl
+    return fv, fl, keep
 
 
 # Compile the training and test set from the patient seizure and interictal data. Returns training and test data/labels;
@@ -52,21 +58,36 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
         test_rng = {'DV': [100, 139], 'GB': [20, 39], 'SW': [10, 19], 'PE': [10, 19], 'RS': [20, 29], 'JY': [40, 69]}
         train_rng = {'DV': [0, 99], 'GB': [0, 19], 'SW': [0, 9], 'PE': [0, 9], 'RS': [0, 19], 'JY': [0, 39]}
 
-    first = True
+    first = True  # first patient for initialization on first loop iter
     for pt in patients:
-        fname = pt + "19_EEG_" + winSize + "sec_" + gmiType + "_th=%0.0d.mat" % threshold
-        fv, fl = getseizure(ldir + fname, max_windows)
-        if first:
-            test_data = fv[test_rng[pt][0]:test_rng[pt][1] + 1]
+        fname = pt + "19_EEG_" + winSize + "sec_" + gmiType + "_th=%0.0d.mat" % threshold  # file of seizure data
+        fv, fl, keep_inds = getseizure(ldir + fname, max_windows)  # feature values, feature labels, indices to keep
+        if first:  # initialize the feature value, label, and keep ind stacks
+            test_data = fv[test_rng[pt][0]:test_rng[pt][1] + 1]  # "+ 1" includes the last sample
             train_data = fv[train_rng[pt][0]:train_rng[pt][1] + 1]
             test_lbls = fl[test_rng[pt][0]:test_rng[pt][1] + 1]
             train_lbls = fl[train_rng[pt][0]:train_rng[pt][1] + 1]
-            first = False
-        else:
+            train_keep_inds = keep_inds[train_rng[pt][0]:train_rng[pt][1] + 1]
+            test_keep_inds = keep_inds[test_rng[pt][0]:test_rng[pt][1] + 1]
+            first = False  # switch the first patient flag
+        else:  # start stacking
             test_data = np.vstack((test_data, fv[test_rng[pt][0]:test_rng[pt][1] + 1]))
             train_data = np.vstack((train_data, fv[train_rng[pt][0]:train_rng[pt][1] + 1]))
             test_lbls = np.vstack((test_lbls, fl[test_rng[pt][0]:test_rng[pt][1] + 1]))
             train_lbls = np.vstack((train_lbls, fl[train_rng[pt][0]:train_rng[pt][1] + 1]))
+            train_keep_inds = np.vstack((train_keep_inds, keep_inds[train_rng[pt][0]:train_rng[pt][1] + 1]))
+            test_keep_inds = np.vstack((test_keep_inds, keep_inds[test_rng[pt][0]:test_rng[pt][1] + 1]))
+
+    # old debugging
+    # print((test_keep_inds.ravel(), test_lbls.ravel()))
+    #
+    # print(np.where(np.logical_and(test_keep_inds.ravel(), test_lbls.ravel()) == True))
+    #
+    # # handle the keep indices
+    # test_data = np.squeeze(test_data[np.where(test_keep_inds.ravel() == 0), ])
+    # train_data = np.squeeze(train_data[np.where(train_keep_inds.ravel() == 0), ])
+    # test_lbls = np.squeeze(test_lbls[np.where(test_keep_inds.ravel() == 0)])
+    # train_lbls = np.squeeze(train_lbls[np.where(train_keep_inds.ravel() == 0)])
 
     # handle the state_switch
     if stateSwitch == "s1":
@@ -75,10 +96,15 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
         test_lbls = np.ones([np.shape(test_data)[0], 1])
         train_lbls = np.ones([np.shape(train_data)[0], 1])
     elif stateSwitch == "s2":
-        test_data = np.squeeze(test_data[np.where(test_lbls.ravel() == 1), ])
-        train_data = np.squeeze(train_data[np.where(train_lbls.ravel() == 1), ])
+        test_data = np.squeeze(test_data[np.where(np.logical_and(test_keep_inds.ravel(), test_lbls.ravel()) == True), ])
+        train_data = np.squeeze(train_data[np.where(np.logical_and(train_keep_inds.ravel(), train_lbls.ravel()) == True), ])
         test_lbls = np.ones([np.shape(test_data)[0], 1])
         train_lbls = np.ones([np.shape(train_data)[0], 1])
+
+    # old debugging
+    # print(len(train_lbls))
+    # print(len(test_lbls))
+    # input("Press a key...")
 
     # get the interictal data (if s1 vs. i0 OR s2 vs. i0)
     if stateSwitch != "s1s2":

@@ -12,16 +12,20 @@ import subprocess
 def get_mat_root():
     hname = socket.gethostname()
     if "Trevors" in hname:
-        mat_root = "/Users/hiltontj/Documents/MATLAB/pancreas/"
-
+        # mat_root1 = "/Users/hiltontj/Documents/MATLAB/pancreas/" # ** need a work-around for this to include spook
+        mat_root = "/Users/hiltontj/Documents/MATLAB/spook/"
+        
         # Check if the mounted pancreas folder is empty, and if so, remount it
-        if os.listdir(mat_root) == []:
+        if 'pancreas' in mat_root and os.listdir(mat_root) == []:
             print("Re-mounting Pancreas...")
             subprocess.call("/Users/hiltontj/Documents/scripts/unmountpancreas.sh")
             subprocess.call("/Users/hiltontj/Documents/scripts/mountpancreas.sh")
             print("Pancreas re-mounted.")
 
-    elif hname in ['pancreas', 'sheldon', 'leonard', 'bernadette', 'howard', 'raj', 'penny', 'pepi']:
+    elif hname in ['pancreas', 'sheldon', 'leonard', 'bernadette', 'howard', 'raj', 'penny']:
         mat_root = "/home/hiltontj/Documents/MATLAB/Thesis/work/"
+
+    elif hname in 'pepi':
+        mat_root = "/home/trevor/Documents/MATLAB/Thesis/work/"
 
     return mat_root

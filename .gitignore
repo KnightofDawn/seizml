@@ -1,2 +1,5 @@
-**workspace.xml
+.idea/workspace.xml
 *.pyc
+.idea/vcs.xml
+*cv_s*
+*test_s*
