@@ -9,11 +9,11 @@ from get_root_dir import get_mat_root
 # type    - type of result (i.e. CV, testing)
 # loc     - where should the results be saved
 # in_dict - dictionary object containing the fields to be saved
-def rec_test_result(save_type, loc, in_dict, append_string):
+def rec_test_result(save_type, loc, in_dict):
 
     saveloc = get_mat_root() + loc
-    # ttl = save_type + '_' + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    ttl = save_type + '_' + datetime.datetime.now().strftime("%Y-%m-%d_") + append_string
+    ttl = save_type + '_' + datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    # ttl = save_type + '_' + datetime.datetime.now().strftime("%Y-%m-%d_") + append_string  # need append_string as input
     sv_dict = dict_cleaner(in_dict)
     # print('Saving .mat file...')
     sio.savemat(saveloc + ttl, sv_dict)

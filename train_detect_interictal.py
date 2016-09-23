@@ -18,8 +18,8 @@ winsize = '2'
 state_switch = 's1'  # select the seizure state
 # randomState = 42  # fix random state
 np.random.seed(42)  # fix randomness
-th = 95  # select the MI threshold
-maxWindows = 9
+th = 94  # select the MI threshold
+maxWindows = 10
 # SVC
 # kern = 'linear'
 # clf = SVC(kernel=kern, probability=True)
@@ -27,7 +27,7 @@ maxWindows = 9
 # pen = 'l2'
 # clf = LogisticRegression(penalty=pen)
 # Random Forest
-numEsts = 200
+numEsts = 100
 clf = RandomForestClassifier(n_estimators=numEsts)
 # AdaBoost
 # algo = "SAMME"
@@ -60,8 +60,8 @@ comment['StateSwitch'] = state_switch
 # Get detection data
 inter = {'DV': ['1'], 'GB': ['1', '2', '3'], 'JY': ['1', '2', '3'],
          'PE': ['1', '2'], 'RS': ['1', '2', '3'], 'SW': ['1', '2', '3']}
-sdir = get_mat_root() + '/mlv2/interictal/pred/rf/_200/'
-ldir = get_mat_root() + '/mlv2/interictal/th/'
+sdir = get_mat_root() + 'mlv2/interictal/pred/rf/_{}/'.format(numEsts)
+ldir = get_mat_root() + 'mlv2/interictal/th/'
 for patient, interseg in inter.iteritems():
     for i in interseg:
         print('Patient: {}, Interictal Segment: {}'.format(patient, i))

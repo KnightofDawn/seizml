@@ -36,14 +36,16 @@ import multiprocessing
 # numEsts = 100
 # base_clf = DecisionTreeClassifier(max_depth=1)
 # clf = AdaBoostClassifier(base_estimator=base_clf, n_estimators=numEsts, algorithm=algo)
-N_e = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+# N_e = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]  # for variable N_e
+TH = range(1, 101)
 num_cores = multiprocessing.cpu_count()
 
 # thvals = range(1, 101)
 # for th in thvals:  # for CVing over a range of MI Thresholds
 
-def my_process(numEsts):
-    th = 95 # for a fixed MI threshold
+def my_process(th):
+    # th = 95  # for a fixed MI threshold
+    numEsts = 200  # for a fixed N_e
     ldir = get_mat_root() + "mlv2/threshbin/"
     gmitype = 'gmi5'
     winsize = '2'

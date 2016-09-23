@@ -55,8 +55,8 @@ def gmi_dataset_extract(ldir, gmiType, winSize, threshold, stateSwitch, interTes
         test_rng = {'DV': [20, 27], 'GB': [4, 7], 'SW': [2, 3], 'PE': [2, 3], 'RS': [4, 5], 'JY': [8, 13]}
         train_rng = {'DV': [0, 19], 'GB': [0, 3], 'SW': [0, 1], 'PE': [0, 1], 'RS': [0, 3], 'JY': [0, 7]}
     elif winSize == '2':
-        test_rng = {'DV': [100, 139], 'GB': [20, 39], 'SW': [10, 19], 'PE': [10, 19], 'RS': [20, 29], 'JY': [40, 69]}
-        train_rng = {'DV': [0, 99], 'GB': [0, 19], 'SW': [0, 9], 'PE': [0, 9], 'RS': [0, 19], 'JY': [0, 39]}
+        test_rng = {'DV': [100, 139], 'GB': [20, 39], 'SW': [10, 19], 'PE': [20, 29], 'RS': [20, 29], 'JY': [40, 69]}
+        train_rng = {'DV': [0, 99], 'GB': [0, 19], 'SW': [0, 9], 'PE': [0, 19], 'RS': [0, 19], 'JY': [0, 39]}
 
     first = True  # first patient for initialization on first loop iter
     for pt in patients:

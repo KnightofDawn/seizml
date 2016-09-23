@@ -15,11 +15,11 @@ from record_data import rec_test_result
 ldir = get_mat_root() + "mlv2/threshbin/"
 gmitype = 'gmi5'  # use quantile-based MI threshold
 winsize = '2'
-state_switch = 's1'  # select the seizure state
-maxWindows = 9
+state_switch = 's2'  # select the seizure state
+maxWindows = 10
 # randomState = 42  # fix random state
 np.random.seed(42)  # fix randomness
-th = 93
+th = 95
 # SVC
 # kern = 'linear'
 # clf = SVC(kernel=kern, probability=True)
@@ -27,7 +27,7 @@ th = 93
 # pen = 'l1'
 # clf = LogisticRegression(penalty=pen)
 # Random Forest
-numEsts = 200
+numEsts = 100
 clf = RandomForestClassifier(n_estimators=numEsts)
 # AdaBoost
 # algo = "SAMME"
@@ -57,10 +57,10 @@ elif "SVC" in comment['ClassifierType']:
 comment['StateSwitch'] = state_switch
 
 # Get detection data
-# seiz = {'DV': ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
-#         'GB': ['3', '4'], 'JY': ['8', '9', '10', '11', '12', '13'], 'PE': ['2'], 'RS': ['3'], 'SW': ['2']}
-seiz = {'PE': ['3']}
-sdir = get_mat_root() + 'mlv2/fullseiz/pred/rf/_200/'
+seiz = {'DV': ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+        'GB': ['3', '4'], 'JY': ['8', '9', '10', '11', '12', '13'], 'PE': ['3'], 'RS': ['3'], 'SW': ['2']}
+# seiz = {'PE': ['3']}
+sdir = get_mat_root() + 'mlv2/fullseiz/pred/rf/_{}/'.format(numEsts)
 ldir = get_mat_root() + 'mlv2/fullseiz/th/'
 for patient, seizure in seiz.iteritems():
     for s in seizure:
